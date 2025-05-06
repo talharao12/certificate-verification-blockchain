@@ -65,7 +65,7 @@ const VerifyCertificate = () => {
     setResult(null); // Clear previous results
 
     try {
-      const response = await axiosInstance.post('/api/certificates/verify/', {
+      const response = await axiosInstance.post('/api/certificates/verify', {
         certificate_id: certificateId.trim(),
       });
       setResult(response.data);

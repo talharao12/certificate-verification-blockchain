@@ -78,19 +78,19 @@ const Home = () => {
           <Grid item xs={12} sm={4}>
             <Paper elevation={2} sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>Fizza Rashid</Typography>
-              <Typography color="text.secondary">Lead Developer</Typography>
+              <Typography color="text.secondary">21K-3390</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={4}>
             <Paper elevation={2} sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>Rao Talha Pervaiz</Typography>
-              <Typography color="text.secondary">Blockchain Expert</Typography>
+              <Typography color="text.secondary">21K-3392</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={4}>
             <Paper elevation={2} sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>Haris Ahmed</Typography>
-              <Typography color="text.secondary">UI/UX Designer</Typography>
+              <Typography color="text.secondary">21K-4677</Typography>
             </Paper>
           </Grid>
         </Grid>

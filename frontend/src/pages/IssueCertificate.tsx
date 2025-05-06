@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Button,
   TextField,
@@ -9,8 +9,9 @@ import {
   Container,
   Snackbar,
   CircularProgress,
+  MenuItem,
 } from '@mui/material';
-import { axiosInstance } from '../context/AuthContext';
+import axiosInstance from '../utils/axios';
 import { useAuth } from '../context/AuthContext';
 
 interface FormData {
@@ -19,6 +20,7 @@ interface FormData {
   courseName: string;
   grade: string;
   completionDate: string;
+  institution: string;
 }
 
 interface FormErrors {
@@ -27,23 +29,52 @@ interface FormErrors {
   courseName?: string;
   grade?: string;
   completionDate?: string;
+  institution?: string;
+}
+
+interface Institution {
+  id: number;
+  name: string;
 }
 
 const IssueCertificate = () => {
-  const { isAuthenticated } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     studentName: '',
     studentId: '',
     courseName: '',
     grade: '',
     completionDate: '',
+    institution: '',
   });
-
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'error' as 'error' | 'success',
+  });
+
+  useEffect(() => {
+    // Fetch institutions when component mounts
+    const fetchInstitutions = async () => {
+      try {
+        const response = await axiosInstance.get('/institutions/');
+        setInstitutions(response.data);
+      } catch (err) {
+        console.error('Failed to fetch institutions:', err);
+        setSnackbar({
+          open: true,
+          message: 'Failed to load institutions. Please try again.',
+          severity: 'error',
+        });
+      }
+    };
+
+    fetchInstitutions();
+  }, []);
 
   const validateForm = (): boolean => {
     const errors: FormErrors = {};
@@ -51,9 +82,6 @@ const IssueCertificate = () => {
 
     if (!formData.studentName.trim()) {
       errors.studentName = 'Student name is required';
-      isValid = false;
-    } else if (formData.studentName.length < 2) {
-      errors.studentName = 'Student name must be at least 2 characters';
       isValid = false;
     }
 
@@ -75,13 +103,11 @@ const IssueCertificate = () => {
     if (!formData.completionDate) {
       errors.completionDate = 'Completion date is required';
       isValid = false;
-    } else {
-      const selectedDate = new Date(formData.completionDate);
-      const today = new Date();
-      if (selectedDate > today) {
-        errors.completionDate = 'Completion date cannot be in the future';
+    }
+
+    if (!formData.institution) {
+      errors.institution = 'Institution is required';
         isValid = false;
-      }
     }
 
     setFormErrors(errors);
@@ -120,12 +146,13 @@ const IssueCertificate = () => {
     setSuccess(false);
 
     try {
-      const response = await axiosInstance.post('/api/certificates/', {
+      const response = await axiosInstance.post('/certificates/', {
         student_name: formData.studentName,
         student_id: formData.studentId,
         course: formData.courseName,
         grade: formData.grade,
         issue_date: formData.completionDate,
+        institution: formData.institution,
         metadata: {} // Optional metadata
       });
 
@@ -143,6 +170,7 @@ const IssueCertificate = () => {
         courseName: '',
         grade: '',
         completionDate: '',
+        institution: '',
       });
     } catch (err: any) {
       const errorMessage = err.response?.data?.detail || 
@@ -160,11 +188,10 @@ const IssueCertificate = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ mt: 4, p: 4 }}>
-        <Stack spacing={3}>
-          <Typography variant="h5" align="center" gutterBottom>
-            Issue New Certificate
+    <Container maxWidth="md">
+      <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Issue Certificate
           </Typography>
 
           {error && (
@@ -173,106 +200,108 @@ const IssueCertificate = () => {
             </Alert>
           )}
 
-          {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              Certificate has been issued successfully.
-            </Alert>
-          )}
-
           <form onSubmit={handleSubmit}>
             <Stack spacing={3}>
               <TextField
+              select
+              label="Institution"
+              name="institution"
+              value={formData.institution}
+              onChange={handleInputChange}
+              error={!!formErrors.institution}
+              helperText={formErrors.institution}
                 required
                 fullWidth
+            >
+              {institutions.map((institution) => (
+                <MenuItem key={institution.id} value={institution.id}>
+                  {institution.name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
                 label="Student Name"
                 name="studentName"
                 value={formData.studentName}
                 onChange={handleInputChange}
-                variant="outlined"
                 error={!!formErrors.studentName}
                 helperText={formErrors.studentName}
-                disabled={isLoading}
+              required
+              fullWidth
               />
 
               <TextField
-                required
-                fullWidth
                 label="Student ID"
                 name="studentId"
                 value={formData.studentId}
                 onChange={handleInputChange}
-                variant="outlined"
                 error={!!formErrors.studentId}
                 helperText={formErrors.studentId}
-                disabled={isLoading}
+              required
+              fullWidth
               />
 
               <TextField
-                required
-                fullWidth
                 label="Course Name"
                 name="courseName"
                 value={formData.courseName}
                 onChange={handleInputChange}
-                variant="outlined"
                 error={!!formErrors.courseName}
                 helperText={formErrors.courseName}
-                disabled={isLoading}
+              required
+              fullWidth
               />
 
               <TextField
-                required
-                fullWidth
                 label="Grade"
                 name="grade"
                 value={formData.grade}
                 onChange={handleInputChange}
-                variant="outlined"
                 error={!!formErrors.grade}
                 helperText={formErrors.grade}
-                disabled={isLoading}
+              required
+              fullWidth
               />
 
               <TextField
-                required
-                fullWidth
                 label="Completion Date"
+              name="completionDate"
                 type="date"
-                name="completionDate"
                 value={formData.completionDate}
                 onChange={handleInputChange}
-                variant="outlined"
                 error={!!formErrors.completionDate}
                 helperText={formErrors.completionDate}
-                InputLabelProps={{ shrink: true }}
-                disabled={isLoading}
-                inputProps={{
-                  max: new Date().toISOString().split('T')[0]
+              required
+              fullWidth
+              InputLabelProps={{
+                shrink: true,
                 }}
               />
+
               <Button
                 type="submit"
                 variant="contained"
+              color="primary"
                 size="large"
-                fullWidth
                 disabled={isLoading}
-                startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+              sx={{ mt: 2 }}
               >
-                {isLoading ? 'Issuing Certificate...' : 'Issue Certificate'}
+              {isLoading ? <CircularProgress size={24} /> : 'Issue Certificate'}
               </Button>
             </Stack>
           </form>
-        </Stack>
       </Paper>
 
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={5000}
+        autoHideDuration={6000}
         onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
       >
         <Alert
-          severity={snackbar.severity}
           onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
         >
           {snackbar.message}
         </Alert>

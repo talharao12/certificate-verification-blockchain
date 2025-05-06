@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth, axiosInstance } from '../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../utils/axios';
 import { isAxiosError } from 'axios';
 import {
   Container,
@@ -30,8 +31,17 @@ const LoginPage = () => {
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' as 'error' | 'success' });
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
 
   const validateForm = (): boolean => {
     const errors: FormErrors = {};
@@ -73,24 +83,24 @@ const LoginPage = () => {
     setError(null);
 
     try {
-      const response = await axiosInstance.post(`/api/token/`, {
+      const response = await axiosInstance.post('/auth/login', {
         email: email.trim(),
         password,
       });
 
-      const { access, refresh } = response.data;
-      await login(access, refresh);
+      const { token } = response.data;
+      login(token);
       setSnackbar({
         open: true,
         message: 'Login successful! Redirecting...',
         severity: 'success'
       });
-      setTimeout(() => navigate('/'), 1000); // Give time for success message
+      setTimeout(() => navigate(from, { replace: true }), 1000);
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('Login failed:', err);
       if (isAxiosError(err)) {
-        const errorMessage = err.response?.status === 401 ? 'Invalid username or password.' :
+        const errorMessage = err.response?.status === 401 ? 'Invalid email or password.' :
                             err.response?.status === 400 ? 'Invalid data sent. Please check your input.' :
                             err.response?.status === 404 ? 'Login endpoint not found. Please check API URL config.' :
                             'Login failed. Please try again later.';
@@ -117,6 +127,11 @@ const LoginPage = () => {
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  // Don't render the login form if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <Container component="main" maxWidth="xs">
@@ -182,7 +197,6 @@ const LoginPage = () => {
               ),
             }}
           />
-          {/* Add other fields like remember me if needed */}
           <Button
             type="submit"
             fullWidth
@@ -192,7 +206,6 @@ const LoginPage = () => {
           >
             {isLoading ? <CircularProgress size={24} /> : 'Sign In'}
           </Button>
-          {/* Add links for registration or password reset if applicable */}
         </Box>
       </Paper>
       <Snackbar

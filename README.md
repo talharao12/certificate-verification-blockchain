@@ -1,252 +1,170 @@
-# Multichain-Based Certificate Verification System
+# Certificate Verification System with Blockchain
 
-A secure and decentralized certificate verification system built using Django REST Framework, React TypeScript, and Multichain. This system enables educational institutions to issue tamper-proof digital certificates that can be instantly verified by anyone.
-
-## Group Members
-- K21-3390 Fizza Rashid
-- K21-3392 Rao Talha
-- K21-4677 Haris Ahmad
+This project implements a secure certificate verification system using Multichain blockchain technology. It allows institutions to issue digital certificates that can be independently verified by anyone.
 
 ## Features
 
-### Core Features
-- Blockchain-based certificate issuance and verification
-- Secure and tamper-proof certificate storage
-- Instant certificate verification using unique IDs
-- Institution management with authentication
-- RESTful API with JWT authentication
+- Issue digital certificates with unique identifiers
+- Store certificate data securely on the blockchain
+- Verify certificates using blockchain data
+- View all certificates stored on the blockchain
+- Modern web interface for certificate management and verification
 
-### Technical Features
-- React TypeScript frontend with Material UI
-- Django REST Framework backend
-- JWT-based authentication with token refresh
-- Robust form validation and error handling
-- Responsive and mobile-friendly design
-- Real-time certificate verification
-- Secure password storage with hashing
+## Technology Stack
+
+- Backend: Django REST Framework
+- Frontend: React with Chakra UI
+- Blockchain: Multichain
+- Database: PostgreSQL
 
 ## Prerequisites
-- Python 3.8 or higher
-- Node.js 16 or higher
-- Multichain 2.0 or higher
-- PostgreSQL (optional, SQLite by default)
 
-## Tech Stack
+- Python 3.8+
+- Node.js 14+
+- Multichain 2.3.3+
+- PostgreSQL
 
-### Backend
-- Django 4.x
-- Django REST Framework
-- djangorestframework-simplejwt
-- django-cors-headers
-- python-dotenv
-- cryptography
-- requests
+## Setup Instructions
 
-### Frontend
-- React 18
-- TypeScript
-- Material UI v5
-- Axios with interceptors
-- React Router v6
-- Context API for state management
-
-## Installation
-
-### 1. Install Multichain
+1. Clone the repository:
 ```bash
-# For Ubuntu/Debian
+git clone <repository-url>
+cd certificate_verification
+```
+
+2. Set up Multichain:
+```bash
+# Install Multichain
 wget https://www.multichain.com/download/multichain-2.3.3.tar.gz
 tar -xvzf multichain-2.3.3.tar.gz
 cd multichain-2.3.3
 mv multichaind multichain-cli multichain-util /usr/local/bin
+
+# Create and initialize the blockchain
+multichain-util create certchain
+multichaind certchain -daemon
 ```
 
-### 2. Set up the Backend
-
+3. Set up the backend:
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd certificate_verification
-
-# Create and activate virtual environment
 cd backend
 python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-
-# Install dependencies
-pip install --upgrade pip  # Ensure pip is up to date
+source venv/bin/activate
 pip install -r requirements.txt
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your settings:
-# - SECRET_KEY: Your Django secret key
-# - DEBUG: Set to False in production
-# - ALLOWED_HOSTS: Add your domain in production
-# - CORS_ALLOWED_ORIGINS: Add your frontend URL
-
-# Initialize the database
-python manage.py makemigrations
 python manage.py migrate
-
-# Create superuser
-python manage.py createsuperuser
-
-# Set up Multichain
-python setup_chain.py
-
-# Start the development server
 python manage.py runserver
 ```
 
-The backend will be available at http://localhost:8000
-
-### 3. Set up the Frontend
-
+4. Set up the frontend:
 ```bash
-cd ../frontend
-
-# Install dependencies
+cd frontend
 npm install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your settings:
-# - REACT_APP_API_URL=http://localhost:8000
-
-# Start the development server
 npm start
 ```
 
-The frontend will be available at http://localhost:3000
+## Blockchain Verification Commands
+
+You can verify that certificates are actually stored on the blockchain using these commands:
+
+1. List all certificates on the blockchain:
+```bash
+multichain-cli certchain liststreamitems certificates
+```
+
+2. Verify a specific certificate:
+```bash
+multichain-cli certchain liststreamkeyitems certificates <certificate-id>
+```
+
+3. Check blockchain status:
+```bash
+multichain-cli certchain getinfo
+```
 
 ## API Endpoints
 
-### Authentication
-- `POST /api/token/` - Obtain JWT token pair
-  ```json
-  {
-    "username": "string",
-    "password": "string"
-  }
-  ```
-- `POST /api/token/refresh/` - Refresh access token
-  ```json
-  {
-    "refresh": "string"
-  }
-  ```
+- `POST /api/certificates/`: Create a new certificate
+- `POST /api/certificates/verify/`: Verify a certificate
+- `GET /api/certificates/list_all_blockchain/`: Get all certificates from blockchain
+- `POST /api/certificates/{id}/revoke/`: Revoke a certificate
 
-### Certificates
-- `POST /api/certificates/` - Issue a new certificate
-  ```json
-  {
-    "student_name": "string",
-    "student_id": "string",
-    "student_email": "string",
-    "course": "string",
-    "grade": "string",
-    "issue_date": "YYYY-MM-DD",
-    "expiry_date": "YYYY-MM-DD",
-    "metadata": {}
-  }
-  ```
-- `GET /api/certificates/` - List all certificates
-- `GET /api/certificates/<id>/` - Get certificate details
-- `POST /api/certificates/verify/` - Verify a certificate
-  ```json
-  {
-    "certificate_id": "string"
-  }
-  ```
+## Example: Creating and Verifying a Certificate
 
-### Institutions
-- `POST /api/institutions/` - Create a new institution
-  ```json
-  {
-    "name": "string",
-    "address": "string",
-    "email": "string",
-    "website": "string"
-  }
-  ```
-- `GET /api/institutions/` - List all institutions
-- `GET /api/institutions/<id>/` - Get institution details
+1. Create a certificate:
+```bash
+curl -X POST http://localhost:8000/api/certificates/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_name": "John Doe",
+    "student_id": "2023-001",
+    "course": "Blockchain Technology",
+    "grade": "A",
+    "issue_date": "2025-05-07",
+    "institution": 1
+  }'
+```
 
-## Usage
+2. Verify the certificate using the API:
+```bash
+curl -X POST http://localhost:8000/api/certificates/verify/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "certificate_id": "<certificate-id>"
+  }'
+```
 
-### For Institutions
-1. Create an institution account through the admin interface
-2. Log in to the web interface using your credentials
-3. Issue certificates for students/recipients with required details
-4. The system will generate a unique certificate ID and store it on the blockchain
-5. Share the certificate ID with the recipient
+3. Verify directly on the blockchain:
+```bash
+multichain-cli certchain liststreamkeyitems certificates <certificate-id>
+```
 
-### For Certificate Holders
-1. Receive the certificate ID from your institution
-2. Visit the certificate verification page
-3. Enter your certificate ID
-4. View and verify your certificate details
-5. Download or share your verified certificate
+## Security Features
 
-### For Verifiers
-1. Request the certificate ID from the certificate holder
-2. Use the public verification interface
-3. Get instant verification results with certificate details
+- Each certificate has a unique hash ID generated using student details and timestamp
+- All blockchain operations are signed and verified
+- Certificates can be revoked if needed
+- All operations are logged and traceable
 
-## Security Considerations
+## Blockchain Data Structure
 
-### Authentication & Authorization
-- JWT-based authentication with refresh tokens
-- Role-based access control for institutions
-- Password hashing using Django's auth system
-- Token refresh mechanism for extended sessions
+Each certificate on the blockchain contains:
+- Certificate ID (unique hash)
+- Student details (name, ID, email)
+- Course information
+- Grade
+- Issue date
+- Institution details
+- Status (DRAFT/ISSUED/REVOKED)
+- Metadata
+- Transaction ID
+- Publisher address
+- Confirmations
 
-### API Security
-- CORS protection with whitelisted origins
-- CSRF protection for non-GET requests
-- Rate limiting on sensitive endpoints
-- Input validation and sanitization
+## Troubleshooting
 
-### Blockchain Security
-- Keep your Multichain RPC credentials secure
-- Regular blockchain data backups
-- Immutable certificate records
-- Cryptographic verification
+1. If Multichain connection fails:
+```bash
+# Check if Multichain daemon is running
+ps aux | grep multichaind
 
-### Production Deployment
-- Use HTTPS with valid SSL certificates
-- Set DEBUG=False in Django settings
-- Configure proper ALLOWED_HOSTS
-- Regular security updates and patches
-- Monitor system logs and access
+# Restart Multichain daemon
+multichaind certchain -daemon
+```
 
-## Development Team
-- Backend Development: [Rao Talha]
-  - Django REST Framework implementation
-  - JWT authentication system
-  - Database design and API endpoints
-- Frontend Development: [Fizza Rashid]
-  - React TypeScript architecture
-  - Material UI components
-  - Form validation and error handling
-- Blockchain Integration: [Haris Ahmad]
-  - Multichain setup and configuration
-  - Certificate hashing and verification
-  - Blockchain data management
+2. Check Multichain permissions:
+```bash
+multichain-cli certchain listpermissions
+```
+
+3. View Multichain logs:
+```bash
+tail -f ~/.multichain/certchain/debug.log
+```
 
 ## Contributing
+
 1. Fork the repository
-2. Create a feature branch
+2. Create your feature branch
 3. Commit your changes
 4. Push to the branch
-5. Create a Pull Request
-
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-- [Django REST Framework](https://www.django-rest-framework.org/)
-- [React](https://reactjs.org/)
-- [Material UI](https://mui.com/)
-- [Multichain](https://www.multichain.com/)
+5. Create a new Pull Request
