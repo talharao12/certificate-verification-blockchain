@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 import hashlib
 import json
+from django.utils import timezone
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -90,7 +91,8 @@ class Certificate(models.Model):
             'grade': self.grade,
             'issue_date': self.issue_date.isoformat(),
             'institution_id': self.institution.id,
-            'institution_name': self.institution.name
+            'institution_name': self.institution.name,
+            'timestamp': timezone.now().isoformat()
         }
         return hashlib.sha256(
             json.dumps(cert_data, sort_keys=True).encode()

@@ -39,8 +39,17 @@ class CertificateIssuanceSerializer(serializers.ModelSerializer):
             'course', 'grade', 'issue_date', 'expiry_date', 'metadata'
         ]
 
+    def validate(self, data):
+        print("=== CertificateIssuanceSerializer Validation ===")
+        print("Input Data:", data)
+        return data
+
     def create(self, validated_data):
+        print("=== CertificateIssuanceSerializer Create ===")
+        print("Validated Data:", validated_data)
         # Generate certificate hash
         instance = Certificate(**validated_data)
         instance.certificate_id = instance.generate_certificate_hash()
+        print("Generated Certificate ID:", instance.certificate_id)
+        instance.save()  # Save the instance to the database
         return instance

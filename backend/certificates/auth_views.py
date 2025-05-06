@@ -18,6 +18,9 @@ class InstitutionRegistrationView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = InstitutionRegistrationSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(user_type='INSTITUTION')
+
 class LoginView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = UserLoginSerializer
@@ -48,7 +51,7 @@ class LoginView(generics.GenericAPIView):
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_object(self):
         return self.request.user

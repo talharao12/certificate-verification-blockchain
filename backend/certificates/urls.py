@@ -7,7 +7,7 @@ from .auth_views import (
     LoginView, UserProfileView
 )
 
-router = DefaultRouter()
+router = DefaultRouter(trailing_slash=False)
 router.register(r'institutions', InstitutionViewSet)
 router.register(r'certificates', CertificateViewSet)
 
@@ -17,7 +17,7 @@ urlpatterns = [
     # Authentication endpoints
     path('auth/register/employer/', EmployerRegistrationView.as_view(), name='employer-register'),
     path('auth/register/institution/', InstitutionRegistrationView.as_view(), name='institution-register'),
-    path('auth/login/', LoginView.as_view(), name='login'),
+    path('auth/login', LoginView.as_view(), name='login'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('auth/profile/', UserProfileView.as_view(), name='user-profile'),
 ]
