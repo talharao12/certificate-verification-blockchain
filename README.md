@@ -1,170 +1,220 @@
-# Certificate Verification System with Blockchain
+# Certificate Verification System
 
-This project implements a secure certificate verification system using Multichain blockchain technology. It allows institutions to issue digital certificates that can be independently verified by anyone.
+A blockchain-based certificate verification system that allows educational institutions to issue and verify academic certificates using Multichain blockchain technology.
 
-## Features
+## Tech Stack
 
-- Issue digital certificates with unique identifiers
-- Store certificate data securely on the blockchain
-- Verify certificates using blockchain data
-- View all certificates stored on the blockchain
-- Modern web interface for certificate management and verification
+### Backend
+- Python 3.8+
+- Django 4.2
+- Django REST Framework
+- Multichain (Blockchain)
+- JWT Authentication
+- PostgreSQL
 
-## Technology Stack
-
-- Backend: Django REST Framework
-- Frontend: React with Chakra UI
-- Blockchain: Multichain
-- Database: PostgreSQL
+### Frontend
+- React 18
+- TypeScript
+- Material-UI (MUI)
+- Axios
+- React Router
+- React Query
 
 ## Prerequisites
 
-- Python 3.8+
-- Node.js 14+
-- Multichain 2.3.3+
-- PostgreSQL
+1. Python 3.8 or higher
+2. Node.js 16 or higher
+3. PostgreSQL
+4. Multichain node (already set up)
+
+## Environment Variables
+
+### Backend (.env)
+```env
+DEBUG=True
+SECRET_KEY=your-secret-key
+DATABASE_URL=postgresql://user:password@localhost:5432/certificate_db
+MULTICHAIN_HOST=localhost
+MULTICHAIN_PORT=4768
+MULTICHAIN_RPC_USER=multichainrpc
+MULTICHAIN_RPC_PASSWORD=your-rpc-password
+MULTICHAIN_CHAIN_NAME=certchain
+MULTICHAIN_STREAM_NAME=certificates
+```
+
+### Frontend (.env)
+```env
+REACT_APP_API_URL=http://localhost:8000
+```
 
 ## Setup Instructions
 
-1. Clone the repository:
+### 1. Clone the Repository
 ```bash
 git clone <repository-url>
 cd certificate_verification
 ```
 
-2. Set up Multichain:
-```bash
-# Install Multichain
-wget https://www.multichain.com/download/multichain-2.3.3.tar.gz
-tar -xvzf multichain-2.3.3.tar.gz
-cd multichain-2.3.3
-mv multichaind multichain-cli multichain-util /usr/local/bin
+### 2. Backend Setup
 
-# Create and initialize the blockchain
-multichain-util create certchain
-multichaind certchain -daemon
-```
-
-3. Set up the backend:
 ```bash
-cd backend
+# Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+cd backend
 pip install -r requirements.txt
+
+# Run migrations
 python manage.py migrate
+
+# Create superuser
+python manage.py createsuperuser
+
+# Run the development server
 python manage.py runserver
 ```
 
-4. Set up the frontend:
+### 3. Frontend Setup
+
 ```bash
+# Install dependencies
 cd frontend
 npm install
+
+# Start development server
 npm start
 ```
 
-## Blockchain Verification Commands
+## Multichain Setup
 
-You can verify that certificates are actually stored on the blockchain using these commands:
+The system is already configured to work with an existing Multichain node. The following settings are used:
 
-1. List all certificates on the blockchain:
-```bash
-multichain-cli certchain liststreamitems certificates
-```
-
-2. Verify a specific certificate:
-```bash
-multichain-cli certchain liststreamkeyitems certificates <certificate-id>
-```
-
-3. Check blockchain status:
-```bash
-multichain-cli certchain getinfo
-```
+- Host: localhost
+- Port: 4768
+- RPC User: multichainrpc
+- Chain Name: certchain
+- Stream Name: certificates
 
 ## API Endpoints
 
-- `POST /api/certificates/`: Create a new certificate
-- `POST /api/certificates/verify/`: Verify a certificate
-- `GET /api/certificates/list_all_blockchain/`: Get all certificates from blockchain
-- `POST /api/certificates/{id}/revoke/`: Revoke a certificate
+### Authentication
+- `POST /api/token/` - Get JWT token
+- `POST /api/token/refresh/` - Refresh JWT token
 
-## Example: Creating and Verifying a Certificate
+### Certificates
+- `POST /api/certificates` - Create new certificate
+- `GET /api/certificates` - List all certificates
+- `GET /api/certificates/{id}` - Get certificate details
+- `POST /api/certificates/verify` - Verify certificate
+- `GET /api/certificates/list_all_blockchain` - List all certificates from blockchain
 
-1. Create a certificate:
-```bash
-curl -X POST http://localhost:8000/api/certificates/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "student_name": "John Doe",
-    "student_id": "2023-001",
-    "course": "Blockchain Technology",
-    "grade": "A",
-    "issue_date": "2025-05-07",
-    "institution": 1
-  }'
+### Institutions
+- `GET /api/institutions` - List all institutions
+- `POST /api/institutions` - Create new institution
+
+## Testing the System
+
+### 1. Create an Institution
+1. Log in to the admin panel (http://localhost:8000/admin)
+2. Create a new institution
+3. Note down the institution ID
+
+### 2. Issue a Certificate
+1. Log in to the frontend application
+2. Navigate to "Issue Certificate"
+3. Fill in the certificate details:
+   - Student Name
+   - Student ID
+   - Course
+   - Grade
+   - Issue Date
+4. Submit the form
+
+### 3. Verify a Certificate
+1. Navigate to "Verify Certificate"
+2. Enter the certificate ID
+3. Click "Verify"
+
+### 4. View Blockchain Data
+1. Navigate to "Certificate List"
+2. All certificates will be displayed with their blockchain status
+
+## Project Structure
+
+```
+certificate_verification/
+├── backend/
+│   ├── certificates/
+│   │   ├── models.py         # Database models
+│   │   ├── views.py          # API views
+│   │   ├── serializers.py    # Data serializers
+│   │   ├── urls.py           # URL routing
+│   │   └── multichain_utils.py  # Blockchain integration
+│   ├── core/
+│   │   ├── settings.py       # Django settings
+│   │   └── urls.py           # Main URL configuration
+│   └── manage.py
+└── frontend/
+    ├── src/
+    │   ├── components/       # React components
+    │   ├── pages/           # Page components
+    │   ├── context/         # React context
+    │   └── App.tsx          # Main application component
+    └── package.json
 ```
 
-2. Verify the certificate using the API:
-```bash
-curl -X POST http://localhost:8000/api/certificates/verify/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "certificate_id": "<certificate-id>"
-  }'
-```
+## Key Features
 
-3. Verify directly on the blockchain:
-```bash
-multichain-cli certchain liststreamkeyitems certificates <certificate-id>
-```
+1. **Blockchain Integration**
+   - Certificates are stored on Multichain blockchain
+   - Each certificate has a unique ID
+   - Immutable record of all certificates
 
-## Security Features
+2. **Authentication**
+   - JWT-based authentication
+   - Role-based access control
+   - Secure API endpoints
 
-- Each certificate has a unique hash ID generated using student details and timestamp
-- All blockchain operations are signed and verified
-- Certificates can be revoked if needed
-- All operations are logged and traceable
+3. **Certificate Management**
+   - Create new certificates
+   - Verify certificate authenticity
+   - View certificate history
+   - Export certificate data
 
-## Blockchain Data Structure
-
-Each certificate on the blockchain contains:
-- Certificate ID (unique hash)
-- Student details (name, ID, email)
-- Course information
-- Grade
-- Issue date
-- Institution details
-- Status (DRAFT/ISSUED/REVOKED)
-- Metadata
-- Transaction ID
-- Publisher address
-- Confirmations
+4. **User Roles**
+   - Institution Admin
+   - Certificate Issuer
+   - Certificate Verifier
 
 ## Troubleshooting
 
-1. If Multichain connection fails:
-```bash
-# Check if Multichain daemon is running
-ps aux | grep multichaind
+### Common Issues
 
-# Restart Multichain daemon
-multichaind certchain -daemon
-```
+1. **Blockchain Connection Error**
+   - Check if Multichain node is running
+   - Verify environment variables
+   - Check RPC credentials
 
-2. Check Multichain permissions:
-```bash
-multichain-cli certchain listpermissions
-```
+2. **Database Connection Error**
+   - Verify PostgreSQL is running
+   - Check database credentials
+   - Ensure migrations are applied
 
-3. View Multichain logs:
-```bash
-tail -f ~/.multichain/certchain/debug.log
-```
+3. **Frontend API Connection Error**
+   - Check if backend server is running
+   - Verify API URL in frontend .env
+   - Check CORS settings
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch
+2. Create a feature branch
 3. Commit your changes
 4. Push to the branch
-5. Create a new Pull Request
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
